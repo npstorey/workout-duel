@@ -1,42 +1,59 @@
 import React from 'react';
 import { User } from '../types/workout';
-import { Flame } from 'lucide-react';
+import pixelFlame from '/assets/images/pixel-flame.jpg';
+import admitTicket from '/assets/images/admit-ticket.jpg';
 
 interface ProgressBarProps {
   user: User;
 }
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({ user }) => {
-  const progress = user.workouts.length;
-  const segments = Array.from({ length: 7 }, (_, i) => i < user.weeklyGoal);
+  const MAX_WORKOUTS_PER_WEEK = 7;
+  // Calculate progress based on actual workouts out of 7 possible days
+  const progress = (user.workouts.length / MAX_WORKOUTS_PER_WEEK) * 100;
   const isOnFire = user.workouts.length >= 3;
+  const hasReachedGoal = user.workouts.length >= user.weeklyGoal;
 
   return (
-    <div className="w-full max-w-md">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-neon-blue">{user.name}</span>
-          {isOnFire && (
-            <Flame className="w-6 h-6 text-yellow-400 animate-pulse" />
-          )}
-        </div>
-        <span className="text-sm text-gray-400">
-          Goal: {user.weeklyGoal} days/week
+    <div className="relative">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-neon-blue font-arcade">
+          {user.name}
+        </span>
+        {isOnFire && (
+          <img 
+            src={pixelFlame} 
+            alt="On Fire" 
+            className="w-6 h-6 animate-pulse" 
+          />
+        )}
+        {hasReachedGoal && (
+          <img 
+            src={admitTicket} 
+            alt="Ticket" 
+            className="w-6 h-6 animate-bounce" 
+          />
+        )}
+        <span className="text-gray-400">
+          Goal: {user.weeklyGoal} days/week ({user.workouts.length}/{MAX_WORKOUTS_PER_WEEK} days)
         </span>
       </div>
-      <div className="flex gap-1 h-8">
-        {segments.map((active, idx) => (
-          <div
-            key={idx}
-            className={`flex-1 border-2 ${
-              idx < progress
-                ? 'bg-neon-pink border-pink-600 animate-pulse'
-                : active
-                ? 'border-gray-600 bg-gray-800'
-                : 'border-gray-800 bg-gray-900'
-            }`}
-          />
-        ))}
+
+      <div className="h-4 bg-gray-700 rounded overflow-hidden">
+        <div
+          className={`h-full transition-all duration-500 ease-out ${
+            hasReachedGoal ? 'bg-neon-yellow' : 'bg-neon-blue'
+          }`}
+          style={{ width: `${Math.min(progress, 100)}%` }}
+        />
+        {/* Optional: Add goal marker */}
+        <div 
+          className="absolute h-full w-1 bg-yellow-300 top-0"
+          style={{ 
+            left: `${(user.weeklyGoal / MAX_WORKOUTS_PER_WEEK) * 100}%`,
+            opacity: 0.7
+          }}
+        />
       </div>
     </div>
   );
